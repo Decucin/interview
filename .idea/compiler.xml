@@ -12,6 +12,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="OOMTest" target="1.5" />
       <module name="oomTest" target="1.5" />
     </bytecodeTargetLevel>
   </component>
