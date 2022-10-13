@@ -9,15 +9,11 @@
         <option value="$PROJECT_DIR$/jvm/pom.xml" />
         <option value="$PROJECT_DIR$/algorithm/pom.xml" />
         <option value="$PROJECT_DIR$/jvm/gc/pom.xml" />
+        <option value="$PROJECT_DIR$/foundation/pom.xml" />
       </list>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
-  </component>
-  <component name="SwUserDefinedSpecifications">
-    <option name="specTypeByUrl">
-      <map />
-    </option>
   </component>
 </project>
