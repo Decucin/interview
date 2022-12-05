@@ -7,8 +7,10 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="OOMTest" />
+        <module name="concurrent" />
         <module name="foundation" />
         <module name="gc" />
+        <module name="classloading" />
         <module name="algorithm" />
       </profile>
     </annotationProcessing>

@@ -12,5 +12,7 @@
     <modules>
         <module>gc</module>
         <module>oomTest</module>
+        <module>classloading</module>
+        <module>concurrent</module>
     </modules>
 </project>
