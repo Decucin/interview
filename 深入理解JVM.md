@@ -237,6 +237,67 @@ CMS与G1的比较：
 * 问题：染色指针操作系统是否支持
 * 还有一个优点：支持"NUMA-Aware"(为多处理器或多核处理器所设计的内存架构)内存分配，优先尝试在请求线程当前所处的处理器本地内存上分配对象以保证高效内存访问
 
+## 获得垃圾收集器过程的参数
+默认为两行，第一行是JDK9之前的，第二行是JDK9后的
+1. 查看GC基本信息
+    * -XX:+PrintGC
+    * -Xlog:gc
+2. 查看GC详细信息
+    * -XX:+PrintGCDetails
+    * -X-log:gc*
+3. 查看GC前后的堆、方法区可用容量变化
+    * -XX:+PrintHeapAtGC
+    * -Xlog:gc+heap=debug
+4. 查看GC过程中用户线程并发时间以及停顿时间
+    * -XX:+PrintGCApplicationConcurrentTime, -XX:+PrintGCApplicationStoppedTime
+    * -Xlog:safepoint
+5. 查看收集器Ergonomics(自动设置堆空间各分代区域大小、收集目标等)
+    * -XX:+PrintAdaptiveSizePolicy
+    * -Xlog:gc+ergo*=trace
+6. 查看收集后剩余对象的年龄分布信息
+    * -XX:+PrintTenuringDistribution
+    * -Xlog:gc+age=trace
+7. ...
+
+## 内存分配回收策略
+* 对象优先在Eden区进行分配，空间不够是Minor GC
+* 大对象直接进入老年代(-XX:PretenureSizeThreshold指定大于该值的直接在老年代分配)
+* 长期存活的对象进入老年代(-XX:MaxTenuringThreshold设置大于此年龄的进入老年代，默认15)
+* 动态对象年龄判定：相同年龄所有对象大小的总和大于Survivor空间的一半，年龄大于或等于该年龄的对象可以直接进入老年代
+* 空间分配担保：Minor GC前需要检查老年代最大可用的连续空间是否大于新生代所有对象空间，成立可以Minor GC，不成立则先-XX:HandlePromotionFailure是否允许担保失败，允许的话，检查老年代最大可用的连续空间是否大于历次晋升到老年代对象的平均大小，大于的话，即使此次GC有风险仍进行小于或者不允许分配担保，那么进行Full GC
+* 注意空间分配担保，在JDK 6之后就变为**只要连续空间大于新生代对象总和或者是历次晋升平均大小都会Full GC**
+
+
+# 虚拟机执行子系统
+## 类文件
+### 结构
+**这里注意java的class文件是Big-Endian，即高位字节在地址最低位**
+此外，就下文结构中的特殊情形做一些说明，class文件大致只有两种数据类型：
+* 无符号数: u1, u2, u4, u8分布表示1个字节, 两个字节, ... 的无符号数，可以是数字、引用、数量值或者UTF-8字符串值
+* 表: 以_info结尾，复合结构，class文件本质也是一张表
+
+|类型|名称|数量|说明|
+|---|--|--|--|
+|u4|magic|1|魔数，0xcafebabe|
+|u2|minor_version|1|Java次版本号|
+|u2|major_version|1|Java主版本号|
+|u2|constant_pool_count|1|标识该类文件有多少常量，从1开始计数|
+|cp_info|constant_pool|constant_pool_count - 1| |
+|u2|access_flags|1| |
+|u2|this_class|1| |
+|u2|super_class|1| |
+|u2|interfaces_count|1| |
+|u2|interfaces|interfaces_count| |
+|u2|fields_count|1| |
+|filed_info|fields|fields_count| |
+|u2|methods_count|1| |
+|method_info|methods|methods_count| |
+|u2|attributes_count|1| |
+|attribute_info|attributes|attributes_count| |
+这里对以上内容做更进一步对解释
+* Java版本号是45开始，1.1之后，每个大版本发布，主版本号向上+1，次版本号，1.1能识别45.0 ~ 45.65535，之后直到JDK12开始使用，次版本号标识为65535才可正式识别
+* 常量池主要是两类，字面量(类似常量，即文本字符串，被声明为final类型的常量值等)和符号引用(被导出或开放的包、类和接口的全限定名、字段的名称和描述、方法的名称和描述、方法句柄和方法类型、动态调用点和动态常量)，常量池中每一项都是一个表
+
 # 虚拟机执行
 ## 类加载
 加载 验证 准备 解析 初始化 使用 卸载(验证、准备、解析统称为连接)
